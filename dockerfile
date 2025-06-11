@@ -1,27 +1,12 @@
-FROM php:8.3-apache
+FROM php:7.4-apache
 
-ARG APP_ENV
-ARG APACHE_PORT
+RUN docker-php-ext-install pdo pdo_mysql
 
-EXPOSE ${APACHE_PORT}
+COPY ./config/httpd-vhosts.dev.conf /etc/apache2/sites-available/000-default.conf
+COPY . /var/www/html/
 
-RUN apt-get update -qq && \
-    apt-get install -qy \
-    git \
-    gnupg \
-    unzip \
-    zip \
-    && apt-get clean -y
+RUN chown -R www-data:www-data /var/www/html/
+RUN chmod -R 755 /var/www/html
 
-
-RUN docker-php-ext-install -j$(nproc) opcache pdo_mysql
-COPY ./config/httpd-vhosts.${APP_ENV}.conf /etc/apache2/sites-available/000-default.conf
-COPY ./backend/ /etc/apache2/App/Backend/
-
-RUN chown -R www-data:www-data /etc/apache2/App/Backend/
-RUN chmod -R 755 /etc/apache2/App/Backend
-
-WORKDIR /etc/apache2/App/backend/
+WORKDIR /var/www/html
 RUN a2enmod rewrite
-RUN composer install
-COPY .env /etc/apache2/App/backend/.env
