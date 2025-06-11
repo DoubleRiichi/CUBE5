@@ -1,9 +1,9 @@
 FROM php:8.3-apache
 
 ARG APP_ENV
-ARG APPACHE_PORT
+ARG APACHE_PORT
 
-EXPOSE ${PORT}
+EXPOSE ${APACHE_PORT}
 
 RUN apt-get update -qq && \
     apt-get install -qy \
