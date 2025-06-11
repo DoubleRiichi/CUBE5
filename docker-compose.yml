@@ -2,28 +2,26 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
       args:
-        APACHE_CONF: ${APACHE_CONF}
+        APACHE_PORT: ${APACHE_PORT}
         APP_ENV: ${APP_ENV}
-    container_name: BLOC-5${APP_ENV}
+    container_name: app-CUBE-5${APP_ENV}
     ports:
-      - "${APP_PORT}:80"
-    volumes:
-      - .:/var/www/html/public
+      - "${APACHE_PORT}:${APACHE_PORT}"
     depends_on:
       - db
     env_file:
-      - ${ENV_FILE}
+      - .${APP_ENV}.env
 
   db:
     image: mysql:8
-    container_name: BLOC-5${APP_ENV}
+    container_name: db-CUBE-5${APP_ENV}
     restart: always
     env_file:
-      - ${ENV_FILE}
+      - .${APP_ENV}.env
     ports:
-      - "${DB_PORT}:3306"
+      - "${DB_PORT}:${DB_PORT}"
     volumes:
       - db_data_${APP_ENV}:/var/lib/mysql
       - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql

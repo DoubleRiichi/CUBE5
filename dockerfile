@@ -23,4 +23,4 @@ RUN chmod -R 755 /etc/apache2/App/Backend
 
 WORKDIR /etc/apache2/App/Backend/
 RUN a2enmod rewrite
-COPY .env /etc/apache2/App/Backend/.env
+COPY .${APP_ENV}.env /etc/apache2/App/Backend/.env
