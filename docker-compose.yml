@@ -24,7 +24,7 @@ services:
       - "${DB_PORT}:${DB_PORT}"
     volumes:
       - db_data_${APP_ENV}:/var/lib/mysql
-      - ./sql/import.sql:/docker-entrypoint-initdb.d/import.sql
+      - ./db/import.sql:/docker-entrypoint-initdb.d/import.sql
 
 volumes:
   db_data_dev:
