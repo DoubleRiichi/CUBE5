@@ -18,10 +18,12 @@ services:
     image: mysql:8
     container_name: db-CUBE-5${APP_ENV}
     restart: always
+    command:
+      - --mysql-native-password=ON
     env_file:
       - .${APP_ENV}.env
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "${DB_PORT}:3306"
     volumes:
       - db_data_${APP_ENV}:/var/lib/mysql
       - ./db/import.sql:/docker-entrypoint-initdb.d/import.sql
