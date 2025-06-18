@@ -44,8 +44,8 @@ class Config
     public static function init()
     {
         self::$DB_HOST = getenv('DB_HOST');
-        self::$DB_NAME = getenv('DB_DATABASE');
-        self::$DB_USER = getenv('DB_USERNAME');
+        self::$DB_NAME = getenv('DB_NAME');
+        self::$DB_USER = getenv('DB_USER');
         self::$DB_PASSWORD = getenv('DB_PASSWORD');
     }
 }
