@@ -1,17 +1,12 @@
-FROM php:8.3-apache
+FROM php:7.4-apache
 
-ARG APP_ENV
-ARG APACHE_PORT
+RUN docker-php-ext-install pdo pdo_mysql
 
-EXPOSE ${APACHE_PORT}
+COPY ./config/httpd-vhosts.dev.conf /etc/apache2/sites-available/000-default.conf
+COPY . /var/www/html/
 
-RUN apt-get update -qq && \
-    apt-get install -qy \
-    git \
-    gnupg \
-    unzip \
-    zip \
-    && apt-get clean -y
+RUN chown -R www-data:www-data /var/www/html/
+RUN chmod -R 755 /var/www/html
 
 
 RUN docker-php-ext-install -j$(nproc) opcache pdo_mysql
