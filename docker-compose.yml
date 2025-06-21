@@ -1,0 +1,33 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile
+      args:
+        APACHE_PORT: ${APACHE_PORT}
+        APP_ENV: ${APP_ENV}
+    container_name: app-CUBE-5${APP_ENV}
+    ports:
+      - "${APACHE_PORT}:${APACHE_PORT}"
+    depends_on:
+      - db
+    env_file:
+      - .${APP_ENV}.env
+
+  db:
+    image: mysql:8
+    container_name: db-CUBE-5${APP_ENV}
+    restart: always
+    command:
+      - --mysql-native-password=ON
+    env_file:
+      - .${APP_ENV}.env
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - db_data_${APP_ENV}:/var/lib/mysql
+      - ./db/import.sql:/docker-entrypoint-initdb.d/import.sql
+
+volumes:
+  db_data_dev:
+  db_data_prod:
