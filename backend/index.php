@@ -2,45 +2,14 @@
 
 namespace App;
 
-/**
- * Application configuration
- * PHP version 7.0
- */
 class Config
 {
-    /**
-     * Database host
-     * @var string
-     */
     public static $DB_HOST = null;
-
-    /**
-     * Database name
-     * @var string
-     */
     public static $DB_NAME = null;
-
-    /**
-     * Database user
-     * @var string
-     */
     public static $DB_USER = null;
-
-    /**
-     * Database password
-     * @var string
-     */
     public static $DB_PASSWORD = null;
-
-    /**
-     * Show or hide error messages on screen
-     * @var boolean
-     */
     const SHOW_ERRORS = true;
 
-    /**
-     * Initialize configuration values
-     */
     public static function init()
     {
         self::$DB_HOST = getenv('DB_HOST');
@@ -50,20 +19,35 @@ class Config
     }
 }
 
-// Initialize the configuration
 Config::init();
 
 try {
-    // Create PDO connection
     $dsn = "mysql:host=" . Config::$DB_HOST . ";dbname=" . Config::$DB_NAME;
     $pdo = new \PDO($dsn, Config::$DB_USER, Config::$DB_PASSWORD);
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-    // Query to fetch all todos
+    // 🔹 Handle form submission
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $title = $_POST['title'] ?? '';
+        $content = $_POST['content'] ?? '';
+
+        if (!empty($title) && !empty($content)) {
+            $stmt = $pdo->prepare("INSERT INTO todoList (title, content) VALUES (:title, :content)");
+            $stmt->execute([
+                ':title' => $title,
+                ':content' => $content
+            ]);
+
+            // Redirect to prevent form resubmission
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
+    }
+
+    // 🔹 Fetch todos
     $stmt = $pdo->query("SELECT * FROM todoList");
     $todos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-    // Display the todos with styled HTML
     ?>
     <!DOCTYPE html>
     <html lang="fr">
@@ -74,56 +58,77 @@ try {
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
                 margin: 0;
                 padding: 20px;
                 background-color: #f5f5f5;
             }
             .container {
                 max-width: 800px;
-                margin: 0 auto;
+                margin: auto;
                 padding: 20px;
             }
             h1 {
-                color: #2c3e50;
                 text-align: center;
-                margin-bottom: 30px;
-                font-size: 2.5em;
                 border-bottom: 2px solid #3498db;
                 padding-bottom: 10px;
+            }
+            form {
+                background: #fff;
+                padding: 20px;
+                margin-bottom: 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            form input[type="text"],
+            form textarea {
+                width: 100%;
+                padding: 10px;
+                margin-top: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 1em;
+            }
+            form button {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            form button:hover {
+                background-color: #2980b9;
             }
             .todo-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
                 gap: 20px;
-                padding: 20px 0;
             }
             .todo-card {
                 background: white;
                 border-radius: 10px;
                 padding: 20px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                transition: transform 0.2s ease-in-out;
-            }
-            .todo-card:hover {
-                transform: translateY(-5px);
-            }
-            .todo-card h3 {
-                color: #2c3e50;
-                margin-top: 0;
-                font-size: 1.4em;
-                border-bottom: 1px solid #e0e0e0;
-                padding-bottom: 10px;
-            }
-            .todo-card p {
-                color: #666;
-                margin: 10px 0 0;
             }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>📋 Ma Liste de Tâches</h1>
+
+            <!-- 🔹 New Todo Form -->
+            <form method="POST" action="">
+                <h2>Ajouter une tâche</h2>
+                <label for="title">Titre:</label>
+                <input type="text" name="title" id="title" required>
+
+                <label for="content">Contenu:</label>
+                <textarea name="content" id="content" rows="4" required></textarea>
+
+                <button type="submit">Ajouter</button>
+            </form>
+
             <div class="todo-grid">
                 <?php foreach ($todos as $todo): ?>
                     <div class="todo-card">
@@ -138,10 +143,6 @@ try {
     <?php
 
 } catch (\PDOException $e) {
-    if (Config::SHOW_ERRORS) {
-        echo "Connection failed: " . $e->getMessage();
-    } else {
-        echo "An error occurred.";
-    }
+    echo Config::SHOW_ERRORS ? "Connection failed: " . $e->getMessage() : "An error occurred.";
 }
 ?>
