@@ -26,7 +26,6 @@ try {
     $pdo = new \PDO($dsn, Config::$DB_USER, Config::$DB_PASSWORD);
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-    // 🔹 Handle form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
@@ -38,11 +37,37 @@ try {
                 ':content' => $content
             ]);
 
-            // Redirect to prevent form resubmission
             header("Location: " . $_SERVER['PHP_SELF']);
             exit;
         }
     }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['delete_id'])) {
+
+        $deleteId = (int) $_POST['delete_id'];
+        $stmt = $pdo->prepare("DELETE FROM todoList WHERE id = :id");
+        $stmt->execute([':id' => $deleteId]);
+
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
+
+    $title = $_POST['title'] ?? '';
+    $content = $_POST['content'] ?? '';
+
+    if (!empty($title) && !empty($content)) {
+        $stmt = $pdo->prepare("INSERT INTO todoList (title, content) VALUES (:title, :content)");
+        $stmt->execute([
+            ':title' => $title,
+            ':content' => $content
+        ]);
+
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
+}
+
 
     // 🔹 Fetch todos
     $stmt = $pdo->query("SELECT * FROM todoList");
@@ -117,8 +142,7 @@ try {
         <div class="container">
             <h1>📋 Ma Liste de Tâches</h1>
 
-            <!-- 🔹 New Todo Form -->
-            <form method="POST" action="">
+                <form method="POST" action="">
                 <h2>Ajouter une tâche</h2>
                 <label for="title">Titre:</label>
                 <input type="text" name="title" id="title" required>
@@ -134,6 +158,10 @@ try {
                     <div class="todo-card">
                         <h3><?= htmlspecialchars($todo['title']) ?></h3>
                         <p><?= htmlspecialchars($todo['content']) ?></p>
+                        <form method="POST" action="" onsubmit="return confirm('Voulez-vous vraiment supprimer cette tâche ?');">
+                            <input type="hidden" name="delete_id" value="<?= (int)$todo['id'] ?>">
+                            <button type="submit" style="background-color: #e74c3c; border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Supprimer</button>
+                        </form>
                     </div>
                 <?php endforeach; ?>
             </div>
